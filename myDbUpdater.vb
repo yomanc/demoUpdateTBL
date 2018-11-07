@@ -265,13 +265,7 @@ Public Class myDbUpdater
                 sQryOpr.Replace(SudoKey, sQryOpd)
                 cmd = createDB2Command(DB2conn, sQryOpr.ToString, DBTIMEOUT)
                 loggerDb.WriteLOG(LogLvl.Dbg, "* " & cmd.CommandText, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-
-                dr = cmd.ExecuteReader()
-                If (dr.HasRows = True) Then
-                    While dr.Read()
-                        loggerDb.WriteLOG(LogLvl.Err, dr.GetValue(0).ToString, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-                    End While
-                End If
+                cmd.ExecuteNonQuery()
             Catch ex As Exception
                 loggerDb.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & ex.Message, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
                 Return False
@@ -279,7 +273,6 @@ Public Class myDbUpdater
                 sQryOpr.Replace(sQryOpd, SudoKey)
                 releaseDB2DataReader(dr)
                 releaseDB2Command(cmd)
-                releaseDB2DataReader(dr)
             End Try
         Next
 
@@ -317,13 +310,7 @@ Public Class myDbUpdater
                 sQryOptr.Replace(SudoKey, tt)
                 cmd = createDB2Command(DB2conn, sQryOptr.ToString, DBTIMEOUT)
                 loggerDb.WriteLOG(LogLvl.Dbg, "* " & cmd.CommandText, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-
-                dr = cmd.ExecuteReader()
-                If (dr.HasRows = True) Then
-                    While dr.Read()
-                        loggerDb.WriteLOG(LogLvl.Err, dr.GetValue(0).ToString, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-                    End While
-                End If
+                cmd.ExecuteNonQuery()
             Catch exBadImageFormat As BadImageFormatException
                 loggerDb.WriteLOG(LogLvl.Err, EXCEPT_BADIMAGEFORMAT & exBadImageFormat.Message.Substring(0, exBadImageFormat.Message.IndexOf(".") + 1), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
                 Return False
@@ -331,8 +318,8 @@ Public Class myDbUpdater
                 loggerDb.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & ex.Message, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
                 Return False
             Finally
-                releaseDB2DataReader(dr)
                 sQryOptr.Replace(tt, SudoKey)
+                releaseDB2DataReader(dr)
                 releaseDB2Command(cmd)
             End Try
         Next

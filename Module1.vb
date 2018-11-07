@@ -87,7 +87,7 @@ Public Module Module1
 
             Logger.WriteLOG(LogLvl.Err, "+ " & MISSION_DESC_E_DONE, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
 
-			
+
             If dbupdter.IsConnected = True Then dbupdter.DisconnectDb()
 
             Console.WriteLine("End execution")
