@@ -7,110 +7,23 @@ Imports demoUpdateEFTBL03.Logger
 
 Public Class myFtpDownloader
 
-    Const ITEMMAXNUM As Integer = 23
-    Const REMFNMIDFMT As String = "yyyyMMddHHmm"
-    Const REMFNTAILFMT As String = ".csv"
-
-    Dim loggerFtp = New Logger
-
     Dim FTP_CONF_SITE As String
     Dim FTP_CONF_UID As String
     Dim FTP_CONF_PWD As String
     Dim FTP_CONF_REMDIR As String
     Dim FTP_CONF_REMFNPREFIX As String
-
     Dim strReqUri As String = Nothing
-
     Dim aAwardnoArrFrmCVS(900000) As String
     Dim iAwardnoArrSzFrmCVS As Integer = 0
-
     Dim aBufCvsToday(ITEMMAXNUM) As String
     Dim iBufCvsTodayNum As Integer
-
     Dim sRemoFn As String = Nothing
     Dim sLatestCSVFn As String = Nothing
-
-	
-    Public Function GetsLatestCSVFn() As String
-        Return Me.sLatestCSVFn
-    End Function
+    Const ITEMMAXNUM As Integer = 23
+    Dim loggerFtp = New Logger(LOCALDNLOADDIR, LOCALLOGFN)
 
 
-    Public Function SetsLatestCSVFn(ByVal s As String) As Boolean
-        If IsNothing(s) Then
-            Return False
-        End If
-        Me.sLatestCSVFn = s
-        Return True
-    End Function
-
-
-    Public Function GetsRemoFn() As String
-        Return Me.sRemoFn
-    End Function
-
-	
-    Public Function GetaBufCvsToday() As String()
-        Return Me.aBufCvsToday
-    End Function
-
-	
-    Public Function GetaAwardnoArrFrmCVS() As String()
-        Return Me.aAwardnoArrFrmCVS
-    End Function
-
-
-    Public Sub SetHost(ByVal s As String)
-        Me.FTP_CONF_SITE = s
-    End Sub
-
-
-    Public Function GetHost() As String
-        Return Me.FTP_CONF_SITE
-    End Function
-
-
-    Public Sub SetUid(ByVal s As String)
-        Me.FTP_CONF_UID = s
-    End Sub
-
-
-    Public Function GetUid() As String
-        Return Me.FTP_CONF_UID
-    End Function
-
-
-    Public Sub SetPwd(ByVal s As String)
-        Me.FTP_CONF_PWD = s
-    End Sub
-
-
-    Public Function GetPWD() As String
-        Return Me.FTP_CONF_PWD
-    End Function
-
-
-    Public Sub SetFtpConfigREMDIR(ByVal s As String)
-        Me.FTP_CONF_REMDIR = s
-    End Sub
-
-
-    Public Function GetFtpConfREMDIR() As String
-        Return Me.FTP_CONF_REMDIR
-    End Function
-
-
-    Public Function GetFtpConfigREMFNPREFIX() As String
-        Return Me.FTP_CONF_REMFNPREFIX
-    End Function
-
-
-    Public Sub SetFtpConfigREMFNPREFIX(ByVal s As String)
-        Me.FTP_CONF_REMFNPREFIX = s
-    End Sub
-
-
-    Public Function SetConf(ByVal fn As String) As Boolean
+    Public Sub New(fn As String)
         Dim fs As FileStream = Nothing
         Dim rs As StreamReader = Nothing
         Dim dat As String = Nothing
@@ -142,57 +55,69 @@ Public Class myFtpDownloader
                 If idx = "FTP_CONF_REMDIR" Then FTP_CONF_REMDIR = key
                 If idx = "FTP_CONF_REMFNPREFIX" Then FTP_CONF_REMFNPREFIX = key
             Next
-
-            Return True
         Catch ex As Exception
             loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & ex.Message, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
             Throw New Exception(EXCEPT_UNDEF & INVALID_CONF_DESC)
-            Return False
         Finally
             If rs IsNot Nothing Then rs.Close()
             If fs IsNot Nothing Then fs.Close()
             rs = Nothing
             fs = Nothing
         End Try
+    End Sub
 
+
+    Public Function GetsLatestCSVFn() As String
+        Return Me.sLatestCSVFn
     End Function
 
 
-    Public Function IsTodayCVSfile(ByVal s As String) As Boolean
-        Dim cmpFmt As String = Nothing
-        Dim sNowDatePtn As String = Nothing
-        Dim cvsFileExtendS As String = Nothing
-
+    Public Function SetsLatestCSVFn(ByVal s As String) As Boolean
         If IsNothing(s) Then
-            loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & INVALID_PARM_DESC, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-            Throw New Exception(EXCEPT_USRDEF & INVALID_PARM_DESC)
-            Return Nothing
-        End If
-
-        cmpFmt = "yyyyMMdd"
-        sNowDatePtn = DateTime.Now.ToString(cmpFmt)
-
-        Dim remfnprefix As String = getFtpConfigREMFNPREFIX()
-        cvsFileExtendS = remfnprefix & REMFNMIDFMT
-
-        Try
-            If s.Length < (Len(cvsFileExtendS) + Len(REMFNTAILFMT)) Then
-                loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_AOOR & INVALID_PARM_DESC, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-                Throw New Exception(EXCEPT_USRDEF & INVALID_PARM_DESC)
-            End If
-
-            If (0 <> String.Compare(s.Substring(Len(remfnprefix), Len(cmpFmt)), sNowDatePtn)) Then
-                Return False
-            End If
-
-            If (0 <> String.Compare(s.Substring(Len(cvsFileExtendS), Len(REMFNTAILFMT)), REMFNTAILFMT)) Then
-                Return False
-            End If
-            Return True
-        Catch ex As Exception
-            loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & ex.Message, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
             Return False
-        End Try
+        End If
+        Me.sLatestCSVFn = s
+        Return True
+    End Function
+
+
+    Public Function GetsRemoFn() As String
+        Return Me.sRemoFn
+    End Function
+
+	
+    Public Function GetaBufCvsToday() As String()
+        Return Me.aBufCvsToday
+    End Function
+
+
+    Public Function GetaAwardnoArrFrmCVS() As String()
+        Return Me.aAwardnoArrFrmCVS
+    End Function
+
+
+    Public Function GetHost() As String
+        Return Me.FTP_CONF_SITE
+    End Function
+
+
+    Public Function GetUid() As String
+        Return Me.FTP_CONF_UID
+    End Function
+
+
+    Public Function GetPWD() As String
+        Return Me.FTP_CONF_PWD
+    End Function
+
+
+    Public Function GetFtpConfREMDIR() As String
+        Return Me.FTP_CONF_REMDIR
+    End Function
+
+
+    Public Function GetFtpConfigREMFNPREFIX() As String
+        Return Me.FTP_CONF_REMFNPREFIX
     End Function
 
 
@@ -336,7 +261,7 @@ Public Class myFtpDownloader
                 RunRetry = False
                 Dim remfnprefix As String = getFtpConfigREMFNPREFIX()
 
-                Me.sRemoFn = RetLatestCsvFn(aBufCvsToday, remfnprefix, REMFNMIDFMT)
+                Me.sRemoFn = RetLatestCsvFn(aBufCvsToday, remfnprefix, "yyyyMMddHHmm")
 
                 Return True
             Catch exWebException As WebException
@@ -434,7 +359,7 @@ Public Class myFtpDownloader
         Dim CONNTIMEOUT As Integer = 1000 * 10 '10sec
         Dim rs As IO.Stream = Nothing
         Dim fs As IO.FileStream = Nothing
-        Dim buffer(2047) As Byte
+        Dim buffer(4095) As Byte
         Dim read As Integer = 0
         Dim fwreqConn As FtpWebRequest = Nothing
 
@@ -444,7 +369,7 @@ Public Class myFtpDownloader
             Return Nothing
         End If
 
-        fwreqConn = CType(FtpWebRequest.Create(remote), FtpWebRequest)
+        fwreqConn = CType(FtpWebRequest.Create("ftp://" & remote), FtpWebRequest)
         fwreqConn.Credentials = New NetworkCredential(uid, pwd)
         fwreqConn.KeepAlive = False
         fwreqConn.UseBinary = True
@@ -460,7 +385,7 @@ Public Class myFtpDownloader
             fs = New IO.FileStream(local, IO.FileMode.Create)
             Do
                 read = rs.Read(buffer, 0, buffer.Length)
-                ''loggerFtp.WriteLOG(LogLvl.Dbg, "* " & "r " & read & " bytes", New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+                loggerFtp.WriteLOG(LogLvl.Dbg, "* " & "r " & read & " bytes", New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
                 fs.Write(buffer, 0, read)
             Loop Until read = 0
             loggerFtp.WriteLOG(LogLvl.Warn, "* " & "dn " & fs.Position & " bytes", New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
@@ -491,18 +416,6 @@ Public Class myFtpDownloader
         End Try
     End Function
 
-	
-    Public Function doFtpConn() As Boolean
-        Return True
-    End Function
-
-
-    'Public Sub dbgTestFtpConf()
-    '    loggerFtp.WriteLOG(LogLvl.Dbg, "* " & Me.getHost(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-    '    loggerFtp.WriteLOG(LogLvl.Dbg, "* " & Me.getUid(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-    '    loggerFtp.WriteLOG(LogLvl.Dbg, "* " & Me.getPWD(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-    'End Sub
-
 
     Private Function GetFileLine(ByVal fp As String) As Integer
         Dim sr As StreamReader = New StreamReader(fp)
@@ -517,10 +430,47 @@ Public Class myFtpDownloader
     End Function
 
 
-    'Public Sub dbgTestConfigAll()
-    '    loggerFtp.WriteLOG(LogLvl.Dbg, "* " & getHost(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-    '    loggerFtp.WriteLOG(LogLvl.Dbg, "* " & getUid(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-    '    loggerFtp.WriteLOG(LogLvl.Dbg, "* " & getPWD(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
-    'End Sub
+    ' [Depricated]
+    Public Sub dbgTestConfigAll()
+        loggerFtp.WriteLOG(LogLvl.Dbg, "* " & GetHost(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+        loggerFtp.WriteLOG(LogLvl.Dbg, "* " & GetUid(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+        loggerFtp.WriteLOG(LogLvl.Dbg, "* " & GetPWD(), New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+    End Sub
+
+
+    '[Depricated]Check if target fileName is today or not by certain format
+    Public Function IsTodayCVSfile(ByVal s As String) As Boolean
+        Dim cmpFmt As String = Nothing
+        Dim cvsFileExtendS As String = Nothing
+
+        If IsNothing(s) Then
+            loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & INVALID_PARM_DESC, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+            Throw New Exception(EXCEPT_USRDEF & INVALID_PARM_DESC)
+            Return Nothing
+        End If
+
+
+        Dim remfnprefix As String = GetFtpConfigREMFNPREFIX()
+        cvsFileExtendS = remfnprefix & "yyyyMMddHHmm"
+
+        Try
+            If s.Length < (Len(cvsFileExtendS) + Len(".csv")) Then
+                loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_AOOR & INVALID_PARM_DESC, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+                Throw New Exception(EXCEPT_USRDEF & INVALID_PARM_DESC)
+            End If
+
+            If (0 <> String.Compare(s.Substring(Len(remfnprefix), Len(cmpFmt)), DateTime.Now.ToString("yyyyMMdd"))) Then
+                Return False
+            End If
+
+            If (0 <> String.Compare(s.Substring(Len(cvsFileExtendS), Len(".csv")), ".csv")) Then
+                Return False
+            End If
+            Return True
+        Catch ex As Exception
+            loggerFtp.WriteLOG(LogLvl.Err, EXCEPT_UNDEF & ex.Message, New StackTrace(True).GetFrame(0).GetMethod().Name, New StackTrace(True).GetFrame(0).GetFileLineNumber().ToString())
+            Return False
+        End Try
+    End Function
 
 End Class

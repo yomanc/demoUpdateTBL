@@ -14,6 +14,9 @@ Public Class Logger
     Public gDBG_ConsoleDispON As Boolean = True
     Public gDBG_level As Integer = LogLvl.Dbg
 
+    Dim LOCALDNLOADDIR As String = Nothing
+    Dim LOCALLOGFN As String = Nothing
+
     Public Const EXCEPT_UNDEF As String = "! Undef Exception: "
     Public Const EXCEPT_AOOR As String = "! ArgumentOutOfRangeException: "
     Public Const EXCEPT_OF As String = "! OverflowException: "
@@ -44,18 +47,37 @@ Public Class Logger
     Public Const HINT_STEP1_E As String = HINT_BANNER & " STEP1 set FTP login conf E " & HINT_BANNER
     Public Const HINT_STEP2_S As String = HINT_BANNER & " STEP2 select data S " & HINT_BANNER
     Public Const HINT_STEP2_E As String = HINT_BANNER & " STEP2 select data E " & HINT_BANNER
-    Public Const HINT_STEP4_S As String = HINT_BANNER & " STEP3 dn data S " & HINT_BANNER
-    Public Const HINT_STEP4_E As String = HINT_BANNER & " STEP3 dn data E " & HINT_BANNER
-    Public Const HINT_STEP5_S As String = HINT_BANNER & " STEP4 parsing data S " & HINT_BANNER
-    Public Const HINT_STEP5_E As String = HINT_BANNER & " STEP4 parsing data E " & HINT_BANNER
-    Public Const HINT_STEP6_S As String = HINT_BANNER & " STEP5 login database S " & HINT_BANNER
-    Public Const HINT_STEP6_E As String = HINT_BANNER & " STEP5 login database E " & HINT_BANNER
-    Public Const HINT_STEP7_S As String = HINT_BANNER & " STEP6 do diff table S " & HINT_BANNER
-    Public Const HINT_STEP7_E As String = HINT_BANNER & " STEP6 do diff table E " & HINT_BANNER
-    Public Const HINT_STEP8_S As String = HINT_BANNER & " STEP7 sudo upd table S " & HINT_BANNER
-    Public Const HINT_STEP8_E As String = HINT_BANNER & " STEP7 sudo upd table E " & HINT_BANNER
-    Public Const HINT_STEP9_S As String = HINT_BANNER & " STEP8 do upd table S " & HINT_BANNER
-    Public Const HINT_STEP9_E As String = HINT_BANNER & " STEP8 do upd table E " & HINT_BANNER
+    Public Const HINT_STEP3_S As String = HINT_BANNER & " STEP3 dn data S " & HINT_BANNER
+    Public Const HINT_STEP3_E As String = HINT_BANNER & " STEP3 dn data E " & HINT_BANNER
+    Public Const HINT_STEP4_S As String = HINT_BANNER & " STEP4 parsing data S " & HINT_BANNER
+    Public Const HINT_STEP4_E As String = HINT_BANNER & " STEP4 parsing data E " & HINT_BANNER
+    Public Const HINT_STEP5_S As String = HINT_BANNER & " STEP5 login database S " & HINT_BANNER
+    Public Const HINT_STEP5_E As String = HINT_BANNER & " STEP5 login database E " & HINT_BANNER
+    Public Const HINT_STEP6_S As String = HINT_BANNER & " STEP6 do diff table S " & HINT_BANNER
+    Public Const HINT_STEP6_E As String = HINT_BANNER & " STEP6 do diff table E " & HINT_BANNER
+    Public Const HINT_STEP7_S As String = HINT_BANNER & " STEP7 sudo upd table S " & HINT_BANNER
+    Public Const HINT_STEP7_E As String = HINT_BANNER & " STEP7 sudo upd table E " & HINT_BANNER
+    Public Const HINT_STEP8_S As String = HINT_BANNER & " STEP8 do upd table S " & HINT_BANNER
+    Public Const HINT_STEP8_E As String = HINT_BANNER & " STEP8 do upd table E " & HINT_BANNER
+
+
+    ' Constructor
+    Public Sub New(localdnloadir As String, locallogfn As String)
+        Me.LOCALDNLOADDIR = localdnloadir
+        Me.LOCALLOGFN = locallogfn
+
+        CreateLoggerDir(Me.LOCALDNLOADDIR)
+    End Sub
+
+
+    Public Function CreateLoggerDir(ByVal p As String) As Boolean
+        If Not Directory.Exists(p) Then
+            My.Computer.FileSystem.CreateDirectory(p)
+            Return True
+        Else
+            Return False
+        End If
+    End Function
 
 
     Public Sub WriteLOG(ByVal hint As LogLvl, ByVal Msg As String, ByVal curName As String, ByVal exceptLine As String)
@@ -86,7 +108,7 @@ Public Class Logger
             'currentName = New StackTrace(True).GetFrame(0).GetMethod().Name
             'callName = New StackTrace(True).GetFrame(1).GetMethod().Name
             Try
-                aFile = New FileStream(LOCALDNLOADDIR & LOCALLOGFN, FileMode.OpenOrCreate)
+                aFile = New FileStream(Me.LOCALDNLOADDIR & Me.LOCALLOGFN, FileMode.OpenOrCreate)
                 aFile.Seek(0, SeekOrigin.End)
                 sw = New StreamWriter(aFile)
                 'sw.WriteLine("{0}{1} {2} {3} @{4}#{5}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(), sPrefix, Msg.Replace(vbCrLf, ""), callName, exceptLine)
@@ -99,24 +121,22 @@ Public Class Logger
                 Throw New Exception("Fatal. Error in WriteLOG")
                 ''Pause()
             Finally
-                If Not sw Is Nothing Then sw.Close()
-                If Not aFile Is Nothing Then aFile.Close()
-                sw = Nothing
-                aFile = Nothing
-
+                ReleaseStreamWriter(sw)
+                ReleaseFileStream(aFile)
             End Try
         End If
     End Sub
 
 
-    Public Function CreateLoggerDir(ByVal p As String) As Boolean
-        If Not Directory.Exists(p) Then
-            My.Computer.FileSystem.CreateDirectory(p)
-            Return True
-        Else
-            Return False
-        End If
-    End Function
+    Public Sub ReleaseStreamWriter(ByRef sw As StreamWriter)
+        If Not sw Is Nothing Then sw.Close()
+        sw = Nothing
+    End Sub
+
+    Public Sub ReleaseFileStream(ByRef fs As FileStream)
+        If Not fs Is Nothing Then fs.Close()
+        fs = Nothing
+    End Sub
 
 
     Public Sub Pause()
